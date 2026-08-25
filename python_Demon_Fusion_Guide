@@ -1,0 +1,96 @@
+from collections import deque
+
+# -----------------------------
+# Sample Demon Database
+# -----------------------------
+fusion_db = {
+    "Shiva": [("Barong", "Vishnu")],
+    "Vishnu": [("Thor", "Anubis")],
+    "Barong": [("Jack Frost", "Angel")],
+    "Thor": [("Power", "Angel")],
+    "Anubis": [("Jack Frost", "Power")],
+    "Power": [],
+    "Angel": [],
+    "Jack Frost": []
+}
+
+# -----------------------------
+# User Inventory
+# -----------------------------
+owned_demons = {
+    "Angel",
+    "Power"
+}
+
+# -----------------------------
+# Fusion Tree Class
+# -----------------------------
+class FusionNode:
+    def __init__(self, demon):
+        self.demon = demon
+        self.children = []
+
+# -----------------------------
+# Build Fusion Tree
+# -----------------------------
+def build_tree(target, owned):
+    # Already owned
+    if target in owned:
+        return FusionNode(f"{target} [OWNED]")
+
+    node = FusionNode(target)
+
+    # Base demon
+    if target not in fusion_db or len(fusion_db[target]) == 0:
+        return FusionNode(f"{target} [MISSING]")
+
+    recipe = fusion_db[target][0]
+
+    child1 = build_tree(recipe[0], owned)
+    child2 = build_tree(recipe[1], owned)
+
+    node.children.append(child1)
+    node.children.append(child2)
+
+    return node
+
+# -----------------------------
+# Print Tree
+# -----------------------------
+def print_tree(node, level=0):
+    print("    " * level + "└── " + node.demon)
+
+    for child in node.children:
+        print_tree(child, level + 1)
+
+# -----------------------------
+# Count Missing Demons
+# -----------------------------
+def count_missing(node):
+    count = 0
+
+    if "[MISSING]" in node.demon:
+        count += 1
+
+    for child in node.children:
+        count += count_missing(child)
+
+    return count
+
+# -----------------------------
+# Main Program
+# -----------------------------
+target = input("Enter target demon: ")
+
+if target not in fusion_db:
+    print("Demon not found in database.")
+else:
+    tree = build_tree(target, owned_demons)
+
+    print("\nFusion Path:\n")
+    print_tree(tree)
+
+    missing = count_missing(tree)
+
+    print("\nSummary")
+    print("Missing Base Demons:", missing)
